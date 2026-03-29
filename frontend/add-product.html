@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ShopCloud — Add Product</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #f7f3ee;
+      --card: #ffffff;
+      --accent1: #ff5c3a;
+      --accent2: #7c3aed;
+      --accent3: #059669;
+      --text: #1a1a2e;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --error: #ef4444;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    nav {
+      background: var(--text);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+
+    .nav-logo {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .nav-logo span { color: var(--accent1); }
+
+    .nav-links a {
+      color: #d1d5db;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      padding: 0.4rem 1rem;
+      border-radius: 999px;
+      transition: all 0.2s;
+    }
+
+    .nav-links a:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+    .main {
+      flex: 1;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 3rem 1rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .main::before {
+      content: '';
+      position: absolute;
+      top: -50px; left: -100px;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(124,58,237,0.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .main::after {
+      content: '';
+      position: absolute;
+      bottom: -100px; right: -50px;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(255,92,58,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 1.5rem;
+      width: 100%;
+      max-width: 860px;
+      position: relative;
+      z-index: 1;
+    }
+
+    @media (max-width: 700px) {
+      .layout { grid-template-columns: 1fr; }
+      .preview-col { order: -1; }
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 24px;
+      padding: 2.5rem;
+      border: 1px solid var(--border);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.06);
+      animation: fadeUp 0.5s ease both;
+    }
+
+    .card-header {
+      margin-bottom: 2rem;
+    }
+
+    .card-header h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 0.3rem;
+    }
+
+    .card-header p { color: var(--muted); font-size: 0.9rem; }
+
+    .form-group { margin-bottom: 1.3rem; }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 0.8rem 1rem;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-family: 'DM Sans', sans-serif;
+      background: #fafafa;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+      color: var(--text);
+    }
+
+    input:focus, textarea:focus {
+      border-color: var(--accent2);
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(124,58,237,0.1);
+    }
+
+    textarea { resize: vertical; min-height: 100px; line-height: 1.5; }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 0.9rem;
+      background: linear-gradient(135deg, var(--accent2), var(--accent1));
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      margin-top: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .btn-submit:hover { opacity: 0.92; }
+    .btn-submit:active { transform: scale(0.98); }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* PREVIEW */
+    .preview-col { animation: fadeUp 0.6s ease both; }
+
+    .preview-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 0.8rem;
+    }
+
+    .preview-card {
+      background: var(--card);
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+      transition: transform 0.3s;
+    }
+
+    .preview-card:hover { transform: translateY(-4px); }
+
+    .preview-image {
+      height: 180px;
+      background: linear-gradient(135deg, #f5f3ff, #ede9fe);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3.5rem;
+      position: relative;
+    }
+
+    .preview-badge {
+      position: absolute;
+      top: 10px; left: 10px;
+      background: var(--accent1);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      text-transform: uppercase;
+    }
+
+    .preview-body { padding: 1.2rem; }
+
+    .preview-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+      color: var(--text);
+    }
+
+    .preview-desc {
+      color: var(--muted);
+      font-size: 0.83rem;
+      margin-bottom: 1rem;
+      line-height: 1.5;
+    }
+
+    .preview-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .preview-price {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--accent2);
+    }
+
+    .preview-btn {
+      background: var(--text);
+      color: #fff;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 999px;
+      font-size: 0.83rem;
+      font-weight: 600;
+      cursor: default;
+    }
+
+    .tips {
+      background: linear-gradient(135deg, #f5f3ff, #ede9fe);
+      border: 1px solid #ddd6fe;
+      border-radius: 16px;
+      padding: 1.2rem;
+      margin-top: 1rem;
+    }
+
+    .tips h4 {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--accent2);
+      margin-bottom: 0.6rem;
+    }
+
+    .tips ul {
+      list-style: none;
+      font-size: 0.82rem;
+      color: var(--muted);
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .tips ul li::before { content: '→ '; color: var(--accent2); }
+
+    .alert {
+      padding: 0.8rem 1rem;
+      border-radius: 10px;
+      font-size: 0.875rem;
+      margin-bottom: 1.2rem;
+      display: none;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .alert.show { display: flex; }
+    .alert.success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+    .alert.error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">Shop<span>Cloud</span></a>
+  <div class="nav-links">
+    <a href="index.html">← Back to Store</a>
+  </div>
+</nav>
+
+<div class="main">
+  <div class="layout">
+
+    <!-- FORM -->
+    <div class="card">
+      <div class="card-header">
+        <h1>Add a Product</h1>
+        <p>Fill in the details and see a live preview on the right</p>
+      </div>
+
+      <div class="alert" id="alert"></div>
+
+      <form id="productForm" onsubmit="handleSubmit(event)">
+        <div class="form-group">
+          <label for="name">Product Name</label>
+          <input type="text" id="name" placeholder="e.g. Running Shoes" required oninput="updatePreview()"/>
+        </div>
+
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea id="description" placeholder="What makes this product special..." oninput="updatePreview()"></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="price">Price (₹)</label>
+            <input type="number" id="price" placeholder="1999" min="0" required oninput="updatePreview()"/>
+          </div>
+          <div class="form-group">
+            <label for="image">Image filename</label>
+            <input type="text" id="image" placeholder="product.jpg" oninput="updatePreview()"/>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit" id="submitBtn">
+          ✦ Add Product
+        </button>
+      </form>
+    </div>
+
+    <!-- PREVIEW -->
+    <div class="preview-col">
+      <div class="preview-label">Live Preview</div>
+      <div class="preview-card">
+        <div class="preview-image">
+          <span id="previewEmoji">📦</span>
+          <span class="preview-badge">New</span>
+        </div>
+        <div class="preview-body">
+          <div class="preview-name" id="previewName">Product Name</div>
+          <div class="preview-desc" id="previewDesc">Your description will appear here...</div>
+          <div class="preview-footer">
+            <div class="preview-price" id="previewPrice">₹0</div>
+            <button class="preview-btn">🛒 Add</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="tips">
+        <h4>💡 Tips</h4>
+        <ul>
+          <li>Use a clear, descriptive name</li>
+          <li>Keep descriptions concise</li>
+          <li>Price in Indian Rupees (₹)</li>
+          <li>Image filename from your server</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const API = "http://localhost:5000";
+  const emojis = ['👟','👜','📱','🎧','⌚','👗','🕶️','💻','🎮','📷','📦'];
+
+  function updatePreview() {
+    const name = document.getElementById('name').value || 'Product Name';
+    const desc = document.getElementById('description').value || 'Your description will appear here...';
+    const price = document.getElementById('price').value || '0';
+
+    document.getElementById('previewName').textContent = name;
+    document.getElementById('previewDesc').textContent = desc;
+    document.getElementById('previewPrice').textContent = '₹' + Number(price).toLocaleString('en-IN');
+
+    // Pick emoji based on name keywords
+    const n = name.toLowerCase();
+    if (n.includes('shoe') || n.includes('boot')) document.getElementById('previewEmoji').textContent = '👟';
+    else if (n.includes('bag') || n.includes('purse')) document.getElementById('previewEmoji').textContent = '👜';
+    else if (n.includes('phone') || n.includes('mobile')) document.getElementById('previewEmoji').textContent = '📱';
+    else if (n.includes('headphone') || n.includes('earphone')) document.getElementById('previewEmoji').textContent = '🎧';
+    else if (n.includes('watch')) document.getElementById('previewEmoji').textContent = '⌚';
+    else if (n.includes('laptop') || n.includes('computer')) document.getElementById('previewEmoji').textContent = '💻';
+    else if (n.includes('glass') || n.includes('sunglass')) document.getElementById('previewEmoji').textContent = '🕶️';
+    else document.getElementById('previewEmoji').textContent = '📦';
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    const name = document.getElementById('name').value;
+    const description = document.getElementById('description').value;
+    const price = document.getElementById('price').value;
+    const image = document.getElementById('image').value;
+    const btn = document.getElementById('submitBtn');
+    const alert = document.getElementById('alert');
+
+    btn.disabled = true;
+    btn.textContent = 'Adding product...';
+    alert.className = 'alert';
+
+    try {
+      const res = await fetch(`${API}/add-product`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, price, description, image })
+      });
+
+      const data = await res.text();
+
+      if (res.ok) {
+        alert.className = 'alert success show';
+        alert.innerHTML = '✓ Product added successfully!';
+        document.getElementById('productForm').reset();
+        updatePreview();
+      } else {
+        alert.className = 'alert error show';
+        alert.innerHTML = '✕ ' + data;
+      }
+    } catch (err) {
+      alert.className = 'alert error show';
+      alert.innerHTML = '✕ Could not connect to server. Is it running?';
+    }
+
+    btn.disabled = false;
+    btn.textContent = '✦ Add Product';
+  }
+</script>
+</body>
+</html>

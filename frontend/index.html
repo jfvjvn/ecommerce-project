@@ -1,83 +1,502 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Ecommerce</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ShopCloud — Store</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
   <style>
+    :root {
+      --bg: #f7f3ee;
+      --card: #ffffff;
+      --accent1: #ff5c3a;
+      --accent2: #7c3aed;
+      --accent3: #059669;
+      --text: #1a1a2e;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
     body {
-      font-family: Arial;
-      background: #f5f5f5;
-      padding: 20px;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
     }
 
-    h1 {
+    /* NAV */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--text);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.2);
+    }
+
+    .nav-logo {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #fff;
+      text-decoration: none;
+      letter-spacing: -0.5px;
+    }
+
+    .nav-logo span { color: var(--accent1); }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .nav-links a {
+      color: #d1d5db;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      padding: 0.4rem 1rem;
+      border-radius: 999px;
+      transition: all 0.2s;
+    }
+
+    .nav-links a:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+    .nav-links .btn-nav {
+      background: var(--accent1);
+      color: #fff;
+      padding: 0.45rem 1.2rem;
+    }
+
+    .nav-links .btn-nav:hover { background: #e04d2f; }
+
+    /* HERO */
+    .hero {
+      padding: 5rem 2rem 3rem;
       text-align: center;
+      position: relative;
+      overflow: hidden;
     }
 
-    .container {
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -80px; left: 50%;
+      transform: translateX(-50%);
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(124,58,237,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-tag {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--accent2), var(--accent1));
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 0.35rem 1rem;
+      border-radius: 999px;
+      margin-bottom: 1.2rem;
+      animation: fadeDown 0.6s ease both;
+    }
+
+    .hero h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.5rem, 6vw, 4rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -1.5px;
+      margin-bottom: 1rem;
+      animation: fadeDown 0.7s ease both;
+    }
+
+    .hero h1 .highlight {
+      background: linear-gradient(135deg, var(--accent1), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      color: var(--muted);
+      font-size: 1.1rem;
+      max-width: 500px;
+      margin: 0 auto 2rem;
+      animation: fadeDown 0.8s ease both;
+    }
+
+    /* SEARCH */
+    .search-wrap {
+      max-width: 460px;
+      margin: 0 auto 3rem;
+      position: relative;
+      animation: fadeDown 0.9s ease both;
+    }
+
+    .search-wrap input {
+      width: 100%;
+      padding: 0.9rem 1.2rem 0.9rem 3rem;
+      border: 2px solid var(--border);
+      border-radius: 999px;
+      font-size: 0.95rem;
+      font-family: 'DM Sans', sans-serif;
+      background: #fff;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .search-wrap input:focus {
+      border-color: var(--accent2);
+      box-shadow: 0 0 0 4px rgba(124,58,237,0.1);
+    }
+
+    .search-wrap .search-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 1.1rem;
+    }
+
+    /* PRODUCTS SECTION */
+    .section {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem 4rem;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+    }
+
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .product-count {
+      background: var(--accent2);
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+    }
+
+    /* GRID */
+    .products-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+      gap: 1.5rem;
     }
 
-    .card {
-      background: white;
-      padding: 15px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    .card h3 {
-      margin: 0;
-    }
-
-    .price {
-      color: green;
-      font-weight: bold;
-    }
-
-    button {
-      margin-top: 10px;
-      padding: 8px;
-      border: none;
-      background: black;
-      color: white;
-      border-radius: 5px;
+    .product-card {
+      background: var(--card);
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      transition: transform 0.3s, box-shadow 0.3s;
+      animation: fadeUp 0.5s ease both;
       cursor: pointer;
     }
 
-    button:hover {
-      background: #333;
+    .product-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
     }
+
+    .card-image {
+      height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-badge {
+      position: absolute;
+      top: 12px; left: 12px;
+      background: var(--accent1);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .card-body {
+      padding: 1.2rem;
+    }
+
+    .card-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+    }
+
+    .card-desc {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-bottom: 1rem;
+      line-height: 1.5;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-price {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--accent2);
+    }
+
+    .card-price span {
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    .btn-cart {
+      background: var(--text);
+      color: #fff;
+      border: none;
+      padding: 0.55rem 1.1rem;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .btn-cart:hover { background: var(--accent1); transform: scale(1.05); }
+    .btn-cart:active { transform: scale(0.97); }
+
+    /* LOADING */
+    .loading-wrap {
+      text-align: center;
+      padding: 4rem;
+      color: var(--muted);
+    }
+
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent2);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 1rem;
+    }
+
+    /* EMPTY */
+    .empty-state {
+      text-align: center;
+      padding: 4rem;
+      color: var(--muted);
+    }
+
+    .empty-state .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .empty-state h3 { font-family: 'Syne', sans-serif; color: var(--text); margin-bottom: 0.5rem; }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      bottom: 2rem; right: 2rem;
+      background: var(--text);
+      color: #fff;
+      padding: 0.8rem 1.4rem;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { border-left: 4px solid var(--accent3); }
+
+    /* COLOR VARIANTS FOR CARDS */
+    .bg-coral { background: linear-gradient(135deg, #fff5f3, #ffe4de); }
+    .bg-purple { background: linear-gradient(135deg, #f5f3ff, #ede9fe); }
+    .bg-green { background: linear-gradient(135deg, #f0fdf4, #dcfce7); }
+    .bg-amber { background: linear-gradient(135deg, #fffbeb, #fef3c7); }
+    .bg-blue { background: linear-gradient(135deg, #eff6ff, #dbeafe); }
+    .bg-pink { background: linear-gradient(135deg, #fdf2f8, #fce7f3); }
+
+    /* ANIMATIONS */
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* FOOTER */
+    footer {
+      background: var(--text);
+      color: #9ca3af;
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.85rem;
+    }
+
+    footer span { color: var(--accent1); }
   </style>
 </head>
 <body>
 
-<h1>🛒 Ecommerce Store</h1>
+<nav>
+  <a href="index.html" class="nav-logo">Shop<span>Cloud</span></a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="add-product.html">Add Product</a>
+    <a href="login.html" class="btn-nav">Login</a>
+  </div>
+</nav>
 
-<div class="container" id="products"></div>
+<div class="hero">
+  <div class="hero-tag">✦ New Arrivals</div>
+  <h1>Discover <span class="highlight">Amazing</span><br/>Products</h1>
+  <p>Shop the latest collection — quality products at unbeatable prices.</p>
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="Search products..." oninput="filterProducts()"/>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">
+    <h2 class="section-title">All Products</h2>
+    <span class="product-count" id="productCount">0 items</span>
+  </div>
+  <div class="products-grid" id="products">
+    <div class="loading-wrap" style="grid-column:1/-1">
+      <div class="spinner"></div>
+      <p>Loading products...</p>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Built with ☁️ on AWS &nbsp;·&nbsp; <span>ShopCloud</span> &copy; 2025
+</footer>
+
+<div class="toast" id="toast">✓ Added to cart!</div>
 
 <script>
-fetch("http://localhost:5000/products")
-.then(res => res.json())
-.then(data => {
-  let output = "";
-  data.forEach(p => {
-    output += `
-      <div class="card">
-        <h3>${p.name}</h3>
-        <p>${p.description}</p>
-        <p class="price">₹${p.price}</p>
-        <button onclick="addToCart('${p.name}')">Add to Cart</button>
-      </div>
-    `;
-  });
-  document.getElementById("products").innerHTML = output;
-});
+  const API = "http://localhost:5000";
+  const bgColors = ['bg-coral','bg-purple','bg-green','bg-amber','bg-blue','bg-pink'];
+  const emojis = ['👟','👜','📱','🎧','⌚','👗','🕶️','💻','🎮','📷'];
+  let allProducts = [];
 
-function addToCart(name) {
-  alert(name + " added to cart");
-}
+  async function loadProducts() {
+    try {
+      const res = await fetch(`${API}/products`);
+      allProducts = await res.json();
+      renderProducts(allProducts);
+    } catch (err) {
+      document.getElementById('products').innerHTML = `
+        <div class="empty-state" style="grid-column:1/-1">
+          <div class="empty-icon">⚠️</div>
+          <h3>Could not load products</h3>
+          <p>Make sure the server is running on port 5000</p>
+        </div>`;
+    }
+  }
+
+  function renderProducts(products) {
+    const grid = document.getElementById('products');
+    const count = document.getElementById('productCount');
+    count.textContent = `${products.length} item${products.length !== 1 ? 's' : ''}`;
+
+    if (products.length === 0) {
+      grid.innerHTML = `
+        <div class="empty-state" style="grid-column:1/-1">
+          <div class="empty-icon">🛍️</div>
+          <h3>No products yet</h3>
+          <p>Add some products to get started!</p>
+        </div>`;
+      return;
+    }
+
+    grid.innerHTML = products.map((p, i) => {
+      const bg = bgColors[i % bgColors.length];
+      const emoji = emojis[i % emojis.length];
+      return `
+        <div class="product-card" style="animation-delay:${i * 0.08}s">
+          <div class="card-image ${bg}">
+            <span>${emoji}</span>
+            <span class="card-badge">New</span>
+          </div>
+          <div class="card-body">
+            <div class="card-name">${p.name}</div>
+            <div class="card-desc">${p.description || 'No description available'}</div>
+            <div class="card-footer">
+              <div class="card-price">₹${Number(p.price).toLocaleString('en-IN')} <span>incl. tax</span></div>
+              <button class="btn-cart" onclick="addToCart('${p.name}')">
+                🛒 Add
+              </button>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function filterProducts() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    const filtered = allProducts.filter(p =>
+      p.name.toLowerCase().includes(q) || (p.description || '').toLowerCase().includes(q)
+    );
+    renderProducts(filtered);
+  }
+
+  function addToCart(name) {
+    const toast = document.getElementById('toast');
+    toast.textContent = `✓ ${name} added to cart!`;
+    toast.classList.add('show', 'success');
+    setTimeout(() => toast.classList.remove('show', 'success'), 2500);
+  }
+
+  loadProducts();
 </script>
-
 </body>
 </html>
