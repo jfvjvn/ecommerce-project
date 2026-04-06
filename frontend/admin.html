@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ShopKart — Admin</title>
+  <script src="/js/api.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Outfit:wght@300;400;500;600&display=swap');
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    :root { --bg:#f7f5f0; --bg2:#eeeae2; --surface:#ffffff; --border:#e0dbd0; --border2:#ccc8bc; --accent:#c8873a; --accent-dark:#a86820; --accent-light:#fdf3e7; --text:#1a1714; --text2:#5a5550; --muted:#9a9590; --red:#c0392b; --red-light:#fdf0ee; --green:#2d7a4f; --green-light:#edf7f2; --radius:10px; --shadow:0 2px 12px rgba(0,0,0,0.07); --shadow-lg:0 8px 30px rgba(0,0,0,0.1); }
+    body { background:var(--bg); color:var(--text); font-family:'Outfit',sans-serif; min-height:100vh; }
+    h1,h2,h3,h4 { font-family:'Playfair Display',serif; }
+
+    .navbar { display:flex; align-items:center; justify-content:space-between; padding:0 2.5rem; height:66px; background:var(--surface); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:100; box-shadow:0 1px 8px rgba(0,0,0,0.05); }
+    .nav-brand { font-family:'Playfair Display',serif; font-weight:800; font-size:1.25rem; color:var(--text); text-decoration:none; display:flex; align-items:center; gap:0.4rem; }
+    .brand-icon { color:var(--accent); }
+    .nav-links { display:flex; align-items:center; gap:0.3rem; }
+    .nav-links a { color:var(--text2); text-decoration:none; font-size:0.9rem; font-weight:500; padding:0.4rem 0.8rem; border-radius:6px; transition:all 0.2s; }
+    .nav-links a:hover { background:var(--bg2); color:var(--text); }
+    .nav-links a.active { color:var(--accent); font-weight:600; }
+    .nav-admin { color:var(--accent)!important; }
+    .admin-badge { background:var(--accent); color:#fff; font-size:0.65rem; font-family:'Outfit',sans-serif; font-weight:600; padding:0.1rem 0.45rem; border-radius:20px; vertical-align:middle; margin-left:3px; }
+    .nav-actions { display:flex; align-items:center; gap:0.8rem; }
+    .nav-user { font-size:0.85rem; color:var(--text2); font-weight:500; }
+    .btn-logout { background:none; border:1px solid var(--border2); color:var(--text2); padding:0.35rem 0.9rem; border-radius:6px; cursor:pointer; font-size:0.85rem; font-family:'Outfit',sans-serif; transition:all 0.2s; }
+    .btn-logout:hover { border-color:var(--red); color:var(--red); background:var(--red-light); }
+
+    .container { max-width:1100px; margin:0 auto; padding:2rem 2.5rem; }
+    .page-title { font-size:2rem; font-weight:800; letter-spacing:-0.5px; margin-bottom:0.3rem; }
+    .page-sub { color:var(--muted); margin-bottom:1.5rem; font-size:0.9rem; }
+
+    .stats-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:1rem; margin-bottom:2rem; }
+    .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1.2rem; box-shadow:var(--shadow); }
+    .stat-label { font-size:0.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; font-weight:600; }
+    .stat-value { font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:800; margin-top:0.3rem; }
+    .stat-value.accent { color:var(--accent); }
+
+    .tabs { display:flex; gap:0.3rem; margin-bottom:1.5rem; border-bottom:1px solid var(--border); }
+    .tab-btn { background:none; border:none; font-family:'Outfit',sans-serif; font-size:0.9rem; font-weight:500; color:var(--muted); padding:0.6rem 1rem; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; transition:all 0.2s; }
+    .tab-btn:hover { color:var(--text); }
+    .tab-btn.active { color:var(--accent); border-bottom-color:var(--accent); font-weight:600; }
+    .tab-panel { display:none; }
+    .tab-panel.active { display:block; }
+
+    .form-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1.5rem; margin-bottom:1.5rem; box-shadow:var(--shadow); }
+    .form-card h3 { font-size:1rem; font-weight:700; margin-bottom:1.2rem; }
+    .form-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:1rem; }
+    .field { margin-bottom:0; }
+    .field.full { grid-column:1/-1; }
+    .field label { display:block; font-size:0.75rem; color:var(--text2); margin-bottom:0.3rem; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; }
+    .field input,.field textarea,.field select { width:100%; background:var(--bg); border:1.5px solid var(--border); border-radius:8px; padding:0.65rem 0.9rem; color:var(--text); font-family:'Outfit',sans-serif; font-size:0.9rem; outline:none; transition:border-color 0.2s; }
+    .field input:focus,.field textarea:focus { border-color:var(--accent); background:#fff; }
+    .field textarea { resize:vertical; min-height:70px; }
+    .form-actions { display:flex; gap:0.8rem; margin-top:1.2rem; align-items:center; }
+
+    .img-upload { border:2px dashed var(--border2); border-radius:8px; padding:1rem; text-align:center; cursor:pointer; transition:all 0.2s; background:var(--bg); }
+    .img-upload:hover { border-color:var(--accent); background:var(--accent-light); }
+    .img-upload input { display:none; }
+    .img-upload-label { font-size:0.83rem; color:var(--text2); cursor:pointer; }
+    .img-preview-small { width:60px; height:60px; object-fit:cover; border-radius:6px; display:none; margin:0.4rem auto 0; }
+
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:0.4rem; padding:0.6rem 1.3rem; border-radius:var(--radius); border:none; cursor:pointer; font-family:'Outfit',sans-serif; font-size:0.88rem; font-weight:600; transition:all 0.2s; }
+    .btn-primary { background:var(--accent); color:#fff; }
+    .btn-primary:hover { background:var(--accent-dark); }
+    .btn-primary:disabled { opacity:0.55; cursor:not-allowed; }
+    .btn-outline { background:transparent; border:1px solid var(--border2); color:var(--text2); }
+    .btn-outline:hover { border-color:var(--accent); color:var(--accent); }
+    .btn-danger { background:var(--red-light); border:1px solid #e8b4ae; color:var(--red); }
+    .btn-danger:hover { background:var(--red); color:#fff; }
+    .btn-sm { padding:0.32rem 0.75rem; font-size:0.8rem; }
+
+    .table-wrap { overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; font-size:0.87rem; background:var(--surface); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); }
+    thead th { text-align:left; padding:0.75rem 1rem; font-size:0.73rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; font-weight:600; background:var(--bg2); border-bottom:1px solid var(--border); }
+    tbody tr { border-bottom:1px solid var(--border); transition:background 0.15s; }
+    tbody tr:hover { background:var(--bg); }
+    tbody td { padding:0.85rem 1rem; vertical-align:middle; }
+
+    .status-badge { padding:0.22rem 0.65rem; border-radius:20px; font-size:0.72rem; font-weight:600; text-transform:uppercase; display:inline-block; }
+    .status-pending { background:#fef3e2; color:#b45309; }
+    .status-processing { background:#eff6ff; color:#1d4ed8; }
+    .status-shipped { background:#f0fdf4; color:#166534; }
+    .status-delivered { background:#dcfce7; color:#15803d; }
+    .status-cancelled { background:var(--red-light); color:var(--red); }
+    .role-admin { background:var(--accent-light); color:var(--accent-dark); padding:0.2rem 0.6rem; border-radius:20px; font-size:0.72rem; font-weight:600; }
+    .role-user { background:var(--bg2); color:var(--muted); padding:0.2rem 0.6rem; border-radius:20px; font-size:0.72rem; }
+
+    select.status-select { background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:6px; padding:0.3rem 0.5rem; font-size:0.82rem; font-family:'Outfit',sans-serif; cursor:pointer; }
+
+    .spinner { display:flex; justify-content:center; padding:3rem; color:var(--muted); }
+    .spin { animation:spin 1s linear infinite; display:inline-block; }
+    @keyframes spin { to{transform:rotate(360deg);} }
+
+    .toast { position:fixed; bottom:2rem; right:2rem; padding:0.85rem 1.5rem; border-radius:var(--radius); font-size:0.9rem; z-index:9999; animation:slideUp 0.3s ease; box-shadow:var(--shadow-lg); font-weight:500; }
+    .toast.success { background:var(--green); color:#fff; }
+    .toast.error { background:var(--red); color:#fff; }
+    @keyframes slideUp { from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);} }
+  </style>
+</head>
+<body>
+  <div id="navbar"></div>
+  <div class="container">
+    <div class="page-title">Admin Dashboard</div>
+    <div class="page-sub">Manage products, orders, and users.</div>
+
+    <div id="stats-row"><div class="spinner"><span class="spin">◌</span></div></div>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('products')">Products</button>
+      <button class="tab-btn" onclick="switchTab('orders')">Orders</button>
+      <button class="tab-btn" onclick="switchTab('users')">Users</button>
+    </div>
+
+    <div id="tab-products" class="tab-panel active">
+      <div class="form-card">
+        <h3 id="form-title">Add New Product</h3>
+        <input type="hidden" id="edit-id"/>
+        <div class="form-grid">
+          <div class="field"><label>Name *</label><input id="p-name" placeholder="Product name"/></div>
+          <div class="field"><label>Price (₹) *</label><input id="p-price" type="number" step="0.01" placeholder="0.00"/></div>
+          <div class="field"><label>Stock</label><input id="p-stock" type="number" placeholder="0"/></div>
+          <div class="field">
+            <label>Product Image</label>
+            <div class="img-upload" onclick="document.getElementById('p-img-file').click()">
+              <input type="file" id="p-img-file" accept="image/*" onchange="previewAdminImg(this)"/>
+              <div class="img-upload-label" id="upload-label">📷 Click to upload</div>
+              <img id="admin-img-preview" class="img-preview-small"/>
+            </div>
+          </div>
+          <div class="field full"><label>Description</label><textarea id="p-desc" placeholder="Product description..."></textarea></div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary" id="save-btn" onclick="saveProduct()">Add Product</button>
+          <button class="btn btn-outline" id="cancel-btn" onclick="cancelEdit()" style="display:none">Cancel</button>
+          <button class="btn btn-danger btn-sm" id="delete-btn" onclick="deleteProduct()" style="display:none;margin-left:auto">Delete Product</button>
+        </div>
+      </div>
+      <div id="products-table"><div class="spinner"><span class="spin">◌</span></div></div>
+    </div>
+
+    <div id="tab-orders" class="tab-panel">
+      <div id="orders-table"><div class="spinner"><span class="spin">◌</span></div></div>
+    </div>
+
+    <div id="tab-users" class="tab-panel">
+      <div id="users-table"><div class="spinner"><span class="spin">◌</span></div></div>
+    </div>
+  </div>
+
+  <script>
+    if (!requireAdmin()) throw new Error("redirect");
+    document.getElementById("navbar").innerHTML = renderNav("admin");
+
+    function previewAdminImg(input) {
+      const file = input.files[0];
+      if (!file) return;
+      const preview = document.getElementById("admin-img-preview");
+      preview.src = URL.createObjectURL(file);
+      preview.style.display = "block";
+      document.getElementById("upload-label").textContent = file.name;
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll(".tab-btn").forEach((b,i) => {
+        b.classList.toggle("active", ["products","orders","users"][i] === tab);
+      });
+      document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+      document.getElementById(`tab-${tab}`).classList.add("active");
+      if (tab === "orders") loadOrders();
+      if (tab === "users") loadUsers();
+    }
+
+    async function loadStats() {
+      try {
+        const s = await apiFetch("/admin/stats");
+        document.getElementById("stats-row").innerHTML = `
+          <div class="stats-grid">
+            <div class="stat-card"><div class="stat-label">Users</div><div class="stat-value">${s.totalUsers}</div></div>
+            <div class="stat-card"><div class="stat-label">Products</div><div class="stat-value">${s.totalProducts}</div></div>
+            <div class="stat-card"><div class="stat-label">Orders</div><div class="stat-value">${s.totalOrders}</div></div>
+            <div class="stat-card"><div class="stat-label">Pending</div><div class="stat-value">${s.pendingOrders}</div></div>
+            <div class="stat-card"><div class="stat-label">Revenue</div><div class="stat-value accent">₹${parseFloat(s.totalRevenue||0).toFixed(0)}</div></div>
+          </div>`;
+      } catch(e) { document.getElementById("stats-row").innerHTML = ""; }
+    }
+
+    async function loadProducts() {
+      const el = document.getElementById("products-table");
+      try {
+        const prods = await apiFetch("/products");
+        if (!prods.length) { el.innerHTML = `<p style="color:var(--muted)">No products yet.</p>`; return; }
+        el.innerHTML = `
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>ID</th><th>Image</th><th>Name</th><th>Price</th><th>Stock</th><th>Actions</th></tr></thead>
+              <tbody>
+                ${prods.map(p => `
+                  <tr>
+                    <td style="color:var(--muted)">#${p.id}</td>
+                    <td>${p.image ? `<img src="${p.image}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;" onerror="this.style.display='none'"/>` : "—"}</td>
+                    <td style="font-weight:500">${p.name}</td>
+                    <td>₹${parseFloat(p.price).toFixed(2)}</td>
+                    <td>${p.stock ?? 0}</td>
+                    <td><button class="btn btn-outline btn-sm" onclick='fillEditForm(${JSON.stringify(p)})'>Edit</button></td>
+                  </tr>`).join("")}
+              </tbody>
+            </table>
+          </div>`;
+      } catch(e) { el.innerHTML = `<div style="color:var(--red)">${e.message}</div>`; }
+    }
+
+    function fillEditForm(p) {
+      document.getElementById("edit-id").value = p.id;
+      document.getElementById("p-name").value = p.name;
+      document.getElementById("p-price").value = p.price;
+      document.getElementById("p-stock").value = p.stock ?? 0;
+      document.getElementById("p-desc").value = p.description || "";
+      document.getElementById("p-img-file").value = "";
+      document.getElementById("admin-img-preview").style.display = "none";
+      document.getElementById("upload-label").textContent = p.image ? "📷 Click to change image" : "📷 Click to upload";
+      if (p.image) {
+        document.getElementById("admin-img-preview").src = p.image;
+        document.getElementById("admin-img-preview").style.display = "block";
+      }
+      document.getElementById("form-title").textContent = `Edit: ${p.name}`;
+      document.getElementById("save-btn").textContent = "Save Changes";
+      document.getElementById("cancel-btn").style.display = "inline-flex";
+      document.getElementById("delete-btn").style.display = "inline-flex";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function cancelEdit() {
+      document.getElementById("edit-id").value = "";
+      document.getElementById("p-name").value = "";
+      document.getElementById("p-price").value = "";
+      document.getElementById("p-stock").value = "";
+      document.getElementById("p-desc").value = "";
+      document.getElementById("p-img-file").value = "";
+      document.getElementById("admin-img-preview").style.display = "none";
+      document.getElementById("upload-label").textContent = "📷 Click to upload";
+      document.getElementById("form-title").textContent = "Add New Product";
+      document.getElementById("save-btn").textContent = "Add Product";
+      document.getElementById("cancel-btn").style.display = "none";
+      document.getElementById("delete-btn").style.display = "none";
+    }
+
+    async function saveProduct() {
+      const editId = document.getElementById("edit-id").value;
+      const name = document.getElementById("p-name").value.trim();
+      const price = document.getElementById("p-price").value;
+      const stock = document.getElementById("p-stock").value || 0;
+      const description = document.getElementById("p-desc").value.trim();
+      const imageFile = document.getElementById("p-img-file").files[0];
+      if (!name || !price) { showToast("Name and price are required", "error"); return; }
+
+      const btn = document.getElementById("save-btn");
+      btn.disabled = true; btn.textContent = "Saving...";
+
+      try {
+        let imageUrl = "";
+        if (imageFile) {
+          const formData = new FormData();
+          formData.append("image", imageFile);
+          const uploadRes = await fetch("/upload", {
+            method: "POST",
+            headers: { "Authorization": `Bearer ${getToken()}` },
+            body: formData
+          });
+          const uploadData = await uploadRes.json();
+          if (!uploadRes.ok) throw new Error(uploadData.error || "Upload failed");
+          imageUrl = uploadData.url;
+        }
+
+        const body = { name, price: parseFloat(price), stock: parseInt(stock), description };
+        if (imageUrl) body.image = imageUrl;
+
+        if (editId) {
+          await apiFetch(`/admin/products/${editId}`, { method:"PUT", body: JSON.stringify(body) });
+          showToast("Product updated ✓");
+        } else {
+          await apiFetch("/admin/products", { method:"POST", body: JSON.stringify(body) });
+          showToast("Product added ✓");
+        }
+        cancelEdit();
+        loadProducts();
+        loadStats();
+      } catch(e) { showToast(e.message, "error"); }
+      btn.disabled = false;
+      btn.textContent = document.getElementById("edit-id").value ? "Save Changes" : "Add Product";
+    }
+
+    async function deleteProduct() {
+      const editId = document.getElementById("edit-id").value;
+      if (!confirm("Delete this product?")) return;
+      try {
+        await apiFetch(`/admin/products/${editId}`, { method:"DELETE" });
+        showToast("Product deleted");
+        cancelEdit();
+        loadProducts();
+        loadStats();
+      } catch(e) { showToast(e.message, "error"); }
+    }
+
+    async function loadOrders() {
+      const el = document.getElementById("orders-table");
+      el.innerHTML = `<div class="spinner"><span class="spin">◌</span></div>`;
+      try {
+        const orders = await apiFetch("/admin/orders");
+        if (!orders.length) { el.innerHTML = `<p style="color:var(--muted)">No orders yet.</p>`; return; }
+        el.innerHTML = `
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>ID</th><th>Customer</th><th>Total</th><th>Status</th><th>Date</th><th>Update</th></tr></thead>
+              <tbody>
+                ${orders.map(o => `
+                  <tr>
+                    <td style="color:var(--muted)">#${o.id}</td>
+                    <td>${o.user_name}<br/><span style="color:var(--muted);font-size:0.78rem">${o.email}</span></td>
+                    <td>₹${parseFloat(o.total).toFixed(2)}</td>
+                    <td><span class="status-badge status-${o.status}">${o.status}</span></td>
+                    <td style="color:var(--muted);font-size:0.82rem">${new Date(o.created_at).toLocaleDateString("en-IN")}</td>
+                    <td>
+                      <select class="status-select" onchange="updateOrderStatus(${o.id}, this.value)">
+                        ${["pending","processing","shipped","delivered","cancelled"].map(s =>
+                          `<option value="${s}" ${s===o.status?"selected":""}>${s}</option>`
+                        ).join("")}
+                      </select>
+                    </td>
+                  </tr>`).join("")}
+              </tbody>
+            </table>
+          </div>`;
+      } catch(e) { el.innerHTML = `<div style="color:var(--red)">${e.message}</div>`; }
+    }
+
+    async function updateOrderStatus(id, status) {
+      try {
+        await apiFetch(`/admin/orders/${id}/status`, { method:"PUT", body: JSON.stringify({ status }) });
+        showToast(`Order #${id} → ${status}`);
+        loadStats();
+      } catch(e) { showToast(e.message, "error"); }
+    }
+
+    async function loadUsers() {
+      const el = document.getElementById("users-table");
+      el.innerHTML = `<div class="spinner"><span class="spin">◌</span></div>`;
+      try {
+        const users = await apiFetch("/admin/users");
+        el.innerHTML = `
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Joined</th></tr></thead>
+              <tbody>
+                ${users.map(u => `
+                  <tr>
+                    <td style="color:var(--muted)">#${u.id}</td>
+                    <td style="font-weight:500">${u.name}</td>
+                    <td>${u.email}</td>
+                    <td><span class="role-${u.role}">${u.role}</span></td>
+                    <td style="color:var(--muted);font-size:0.82rem">${new Date(u.created_at).toLocaleDateString("en-IN")}</td>
+                  </tr>`).join("")}
+              </tbody>
+            </table>
+          </div>`;
+      } catch(e) { el.innerHTML = `<div style="color:var(--red)">${e.message}</div>`; }
+    }
+
+    loadStats();
+    loadProducts();
+  </script>
+</body>
+</html>

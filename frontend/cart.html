@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ShopKart — Cart</title>
+  <script src="/js/api.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Outfit:wght@300;400;500;600&display=swap');
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    :root { --bg:#f7f5f0; --bg2:#eeeae2; --surface:#ffffff; --border:#e0dbd0; --border2:#ccc8bc; --accent:#c8873a; --accent-dark:#a86820; --accent-light:#fdf3e7; --text:#1a1714; --text2:#5a5550; --muted:#9a9590; --red:#c0392b; --red-light:#fdf0ee; --green:#2d7a4f; --radius:10px; --shadow:0 2px 12px rgba(0,0,0,0.07); --shadow-lg:0 8px 30px rgba(0,0,0,0.1); }
+    body { background:var(--bg); color:var(--text); font-family:'Outfit',sans-serif; min-height:100vh; }
+    h1,h2,h3,h4 { font-family:'Playfair Display',serif; }
+
+    .navbar { display:flex; align-items:center; justify-content:space-between; padding:0 2.5rem; height:66px; background:var(--surface); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:100; box-shadow:0 1px 8px rgba(0,0,0,0.05); }
+    .nav-brand { font-family:'Playfair Display',serif; font-weight:800; font-size:1.25rem; color:var(--text); text-decoration:none; display:flex; align-items:center; gap:0.4rem; }
+    .brand-icon { color:var(--accent); }
+    .nav-links { display:flex; align-items:center; gap:0.3rem; }
+    .nav-links a { color:var(--text2); text-decoration:none; font-size:0.9rem; font-weight:500; padding:0.4rem 0.8rem; border-radius:6px; transition:all 0.2s; }
+    .nav-links a:hover { background:var(--bg2); color:var(--text); }
+    .nav-links a.active { color:var(--accent); font-weight:600; }
+    .nav-admin { color:var(--accent)!important; }
+    .admin-badge { background:var(--accent); color:#fff; font-size:0.65rem; font-family:'Outfit',sans-serif; font-weight:600; padding:0.1rem 0.45rem; border-radius:20px; vertical-align:middle; margin-left:3px; }
+    .nav-actions { display:flex; align-items:center; gap:0.8rem; }
+    .nav-user { font-size:0.85rem; color:var(--text2); font-weight:500; }
+    .btn-logout { background:none; border:1px solid var(--border2); color:var(--text2); padding:0.35rem 0.9rem; border-radius:6px; cursor:pointer; font-size:0.85rem; font-family:'Outfit',sans-serif; transition:all 0.2s; }
+    .btn-logout:hover { border-color:var(--red); color:var(--red); background:var(--red-light); }
+
+    .container { max-width:900px; margin:0 auto; padding:2rem 2.5rem; }
+    .page-title { font-size:2rem; font-weight:800; letter-spacing:-0.5px; margin-bottom:0.3rem; }
+    .page-sub { color:var(--muted); margin-bottom:1.8rem; font-size:0.9rem; }
+
+    .cart-layout { display:grid; grid-template-columns:1fr 290px; gap:1.5rem; }
+    @media(max-width:680px) { .cart-layout { grid-template-columns:1fr; } }
+
+    .cart-items { display:flex; flex-direction:column; gap:0.8rem; }
+    .cart-item { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); display:flex; align-items:center; gap:1rem; padding:1rem; }
+    .cart-item-img { width:68px; height:68px; border-radius:8px; background:var(--bg2); display:flex; align-items:center; justify-content:center; font-size:1.8rem; flex-shrink:0; overflow:hidden; }
+    .cart-item-img img { width:100%; height:100%; object-fit:cover; }
+    .cart-item-info { flex:1; }
+    .cart-item-name { font-family:'Playfair Display',serif; font-weight:700; font-size:0.95rem; }
+    .cart-item-price { color:var(--muted); font-size:0.82rem; margin-top:0.15rem; }
+    .cart-item-qty { font-size:0.8rem; color:var(--text2); margin-top:0.1rem; }
+    .cart-item-total { font-family:'Playfair Display',serif; font-weight:700; color:var(--accent); font-size:1rem; white-space:nowrap; }
+    .btn-remove { background:none; border:1px solid var(--border); color:var(--muted); padding:0.28rem 0.65rem; border-radius:6px; cursor:pointer; font-size:0.78rem; font-family:'Outfit',sans-serif; transition:all 0.2s; }
+    .btn-remove:hover { border-color:var(--red); color:var(--red); background:var(--red-light); }
+
+    .summary-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:1.5rem; height:fit-content; position:sticky; top:80px; box-shadow:var(--shadow); }
+    .summary-card h3 { font-size:1.1rem; font-weight:700; margin-bottom:1.2rem; }
+    .summary-row { display:flex; justify-content:space-between; padding:0.5rem 0; border-bottom:1px solid var(--border); font-size:0.88rem; color:var(--text2); }
+    .summary-total { display:flex; justify-content:space-between; padding:1rem 0 0; font-family:'Playfair Display',serif; font-weight:700; font-size:1.1rem; }
+    .summary-total span:last-child { color:var(--accent); }
+
+    .btn-place { width:100%; padding:0.85rem; background:var(--accent); color:#fff; border:none; border-radius:var(--radius); font-family:'Outfit',sans-serif; font-size:1rem; font-weight:700; cursor:pointer; margin-top:1.2rem; transition:all 0.2s; }
+    .btn-place:hover { background:var(--accent-dark); }
+    .btn-place:disabled { opacity:0.6; cursor:not-allowed; }
+
+    .empty-state { text-align:center; padding:4rem 2rem; color:var(--muted); }
+    .empty-state .icon { font-size:2.5rem; margin-bottom:1rem; }
+    .empty-state p { margin-bottom:1.5rem; }
+    .empty-state a { color:var(--accent); text-decoration:none; font-weight:600; }
+
+    .spinner { display:flex; justify-content:center; padding:4rem; color:var(--muted); }
+    .spin { animation:spin 1s linear infinite; display:inline-block; }
+    @keyframes spin { to{transform:rotate(360deg);} }
+
+    .toast { position:fixed; bottom:2rem; right:2rem; padding:0.85rem 1.5rem; border-radius:var(--radius); font-size:0.9rem; z-index:9999; animation:slideUp 0.3s ease; box-shadow:var(--shadow-lg); font-weight:500; }
+    .toast.success { background:var(--green); color:#fff; }
+    .toast.error { background:var(--red); color:#fff; }
+    @keyframes slideUp { from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);} }
+  </style>
+</head>
+<body>
+  <div id="navbar"></div>
+  <div class="container">
+    <div class="page-title">Your Cart</div>
+    <div class="page-sub">Review your items before placing an order.</div>
+    <div id="cart-content"><div class="spinner"><span class="spin">◌</span></div></div>
+  </div>
+  <script>
+    if (!requireAuth()) throw new Error("redirect");
+    document.getElementById("navbar").innerHTML = renderNav("cart");
+
+    async function loadCart() {
+      const el = document.getElementById("cart-content");
+      try {
+        const cartData = await apiFetch("/cart");
+        if (!cartData.length) {
+          el.innerHTML = `<div class="empty-state"><div class="icon">🛒</div><p>Your cart is empty.</p><a href="/index.html">Start Shopping →</a></div>`;
+          return;
+        }
+        const total = cartData.reduce((s,i) => s + (i.price * i.quantity), 0);
+        const itemCount = cartData.reduce((s,i) => s + i.quantity, 0);
+        el.innerHTML = `
+          <div class="cart-layout">
+            <div class="cart-items">
+              ${cartData.map(item => `
+                <div class="cart-item">
+                  <div class="cart-item-img">
+                    ${item.image ? `<img src="${item.image}" onerror="this.parentElement.textContent='🛍'"/>` : "🛍"}
+                  </div>
+                  <div class="cart-item-info">
+                    <div class="cart-item-name">${item.name}</div>
+                    <div class="cart-item-price">₹${parseFloat(item.price).toFixed(2)} each</div>
+                    <div class="cart-item-qty">Qty: ${item.quantity}</div>
+                  </div>
+                  <div class="cart-item-total">₹${(item.price * item.quantity).toFixed(2)}</div>
+                  <button class="btn-remove" onclick="removeItem(${item.id}, this)">Remove</button>
+                </div>`).join("")}
+            </div>
+            <div class="summary-card">
+              <h3>Summary</h3>
+              <div class="summary-row"><span>Items (${itemCount})</span><span>₹${total.toFixed(2)}</span></div>
+              <div class="summary-row"><span>Shipping</span><span style="color:var(--green)">Free</span></div>
+              <div class="summary-total"><span>Total</span><span>₹${total.toFixed(2)}</span></div>
+              <button class="btn-place" id="place-btn" onclick="placeOrder()">Place Order</button>
+            </div>
+          </div>`;
+      } catch(e) { el.innerHTML = `<div style="color:var(--red);padding:2rem">${e.message}</div>`; }
+    }
+
+    async function removeItem(cartId, btn) {
+      btn.disabled = true; btn.textContent = "...";
+      try {
+        await apiFetch(`/cart/remove/${cartId}`, { method:"DELETE" });
+        showToast("Item removed");
+        loadCart();
+      } catch(e) { showToast(e.message, "error"); btn.disabled = false; btn.textContent = "Remove"; }
+    }
+
+    async function placeOrder() {
+      const btn = document.getElementById("place-btn");
+      btn.disabled = true; btn.textContent = "Placing order...";
+      try {
+        const res = await apiFetch("/orders", { method:"POST" });
+        showToast(`Order #${res.orderId} placed! 🎉`);
+        setTimeout(() => window.location.href = "/orders.html", 1500);
+      } catch(e) { showToast(e.message, "error"); btn.disabled = false; btn.textContent = "Place Order"; }
+    }
+
+    loadCart();
+  </script>
+</body>
+</html>

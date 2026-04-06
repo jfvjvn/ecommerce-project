@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ShopKart — My Orders</title>
+  <script src="/js/api.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Outfit:wght@300;400;500;600&display=swap');
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    :root { --bg:#f7f5f0; --bg2:#eeeae2; --surface:#ffffff; --border:#e0dbd0; --border2:#ccc8bc; --accent:#c8873a; --text:#1a1714; --text2:#5a5550; --muted:#9a9590; --red:#c0392b; --red-light:#fdf0ee; --green:#2d7a4f; --radius:10px; --shadow:0 2px 12px rgba(0,0,0,0.07); --shadow-lg:0 8px 30px rgba(0,0,0,0.1); }
+    body { background:var(--bg); color:var(--text); font-family:'Outfit',sans-serif; min-height:100vh; }
+    h1,h2,h3,h4 { font-family:'Playfair Display',serif; }
+
+    .navbar { display:flex; align-items:center; justify-content:space-between; padding:0 2.5rem; height:66px; background:var(--surface); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:100; box-shadow:0 1px 8px rgba(0,0,0,0.05); }
+    .nav-brand { font-family:'Playfair Display',serif; font-weight:800; font-size:1.25rem; color:var(--text); text-decoration:none; display:flex; align-items:center; gap:0.4rem; }
+    .brand-icon { color:var(--accent); }
+    .nav-links { display:flex; align-items:center; gap:0.3rem; }
+    .nav-links a { color:var(--text2); text-decoration:none; font-size:0.9rem; font-weight:500; padding:0.4rem 0.8rem; border-radius:6px; transition:all 0.2s; }
+    .nav-links a:hover { background:var(--bg2); color:var(--text); }
+    .nav-links a.active { color:var(--accent); font-weight:600; }
+    .nav-admin { color:var(--accent)!important; }
+    .admin-badge { background:var(--accent); color:#fff; font-size:0.65rem; font-family:'Outfit',sans-serif; font-weight:600; padding:0.1rem 0.45rem; border-radius:20px; vertical-align:middle; margin-left:3px; }
+    .nav-actions { display:flex; align-items:center; gap:0.8rem; }
+    .nav-user { font-size:0.85rem; color:var(--text2); font-weight:500; }
+    .btn-logout { background:none; border:1px solid var(--border2); color:var(--text2); padding:0.35rem 0.9rem; border-radius:6px; cursor:pointer; font-size:0.85rem; font-family:'Outfit',sans-serif; transition:all 0.2s; }
+    .btn-logout:hover { border-color:var(--red); color:var(--red); background:var(--red-light); }
+
+    .container { max-width:800px; margin:0 auto; padding:2rem 2.5rem; }
+    .page-title { font-size:2rem; font-weight:800; letter-spacing:-0.5px; margin-bottom:0.3rem; }
+    .page-sub { color:var(--muted); margin-bottom:1.8rem; font-size:0.9rem; }
+
+    .order-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); margin-bottom:1rem; overflow:hidden; box-shadow:var(--shadow); }
+    .order-header { display:flex; align-items:center; justify-content:space-between; padding:1rem 1.3rem; border-bottom:1px solid var(--border); flex-wrap:wrap; gap:0.5rem; background:var(--bg); }
+    .order-id { font-family:'Playfair Display',serif; font-weight:700; font-size:0.95rem; }
+    .order-date { font-size:0.8rem; color:var(--muted); margin-top:0.1rem; }
+    .order-total { font-family:'Playfair Display',serif; font-weight:700; color:var(--accent); font-size:1.05rem; }
+
+    .status-badge { padding:0.22rem 0.65rem; border-radius:20px; font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.3px; }
+    .status-pending { background:#fef3e2; color:#b45309; }
+    .status-processing { background:#eff6ff; color:#1d4ed8; }
+    .status-shipped { background:#f0fdf4; color:#166534; }
+    .status-delivered { background:#dcfce7; color:#15803d; }
+    .status-cancelled { background:var(--red-light); color:var(--red); }
+
+    .order-items { padding:1rem 1.3rem; display:flex; flex-direction:column; gap:0.45rem; }
+    .order-item-row { display:flex; justify-content:space-between; font-size:0.87rem; }
+    .order-item-name { color:var(--text); font-weight:500; }
+    .order-item-detail { color:var(--muted); }
+
+    .empty-state { text-align:center; padding:4rem 2rem; color:var(--muted); }
+    .empty-state .icon { font-size:2.5rem; margin-bottom:1rem; }
+    .empty-state p { margin-bottom:1.5rem; }
+    .empty-state a { color:var(--accent); text-decoration:none; font-weight:600; }
+
+    .spinner { display:flex; justify-content:center; padding:4rem; color:var(--muted); }
+    .spin { animation:spin 1s linear infinite; display:inline-block; }
+    @keyframes spin { to{transform:rotate(360deg);} }
+  </style>
+</head>
+<body>
+  <div id="navbar"></div>
+  <div class="container">
+    <div class="page-title">My Orders</div>
+    <div class="page-sub">Track your order history.</div>
+    <div id="orders-list"><div class="spinner"><span class="spin">◌</span></div></div>
+  </div>
+  <script>
+    if (!requireAuth()) throw new Error("redirect");
+    document.getElementById("navbar").innerHTML = renderNav("orders");
+
+    async function loadOrders() {
+      const el = document.getElementById("orders-list");
+      try {
+        const orders = await apiFetch("/orders");
+        if (!orders.length) {
+          el.innerHTML = `<div class="empty-state"><div class="icon">📦</div><p>No orders yet.</p><a href="/index.html">Start Shopping →</a></div>`;
+          return;
+        }
+        el.innerHTML = orders.map(o => {
+          const items = typeof o.items === "string" ? JSON.parse(o.items || "[]") : (o.items || []);
+          return `
+            <div class="order-card">
+              <div class="order-header">
+                <div>
+                  <div class="order-id">Order #${o.id}</div>
+                  <div class="order-date">${new Date(o.created_at).toLocaleDateString("en-IN",{year:"numeric",month:"short",day:"numeric"})}</div>
+                </div>
+                <span class="status-badge status-${o.status}">${o.status}</span>
+                <div class="order-total">₹${parseFloat(o.total).toFixed(2)}</div>
+              </div>
+              <div class="order-items">
+                ${items.map(item => `
+                  <div class="order-item-row">
+                    <span class="order-item-name">${item.name}</span>
+                    <span class="order-item-detail">x${item.quantity} — ₹${parseFloat(item.price).toFixed(2)}</span>
+                  </div>`).join("")}
+              </div>
+            </div>`;
+        }).join("");
+      } catch(e) { el.innerHTML = `<div style="color:var(--red);padding:2rem">${e.message}</div>`; }
+    }
+
+    loadOrders();
+  </script>
+</body>
+</html>
